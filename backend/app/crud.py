@@ -88,4 +88,3 @@ def delete_task(db: Session, task_id: int):
 
 def get_user_by_id(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
-
