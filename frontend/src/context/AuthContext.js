@@ -1,28 +1,51 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loginUser } from "../api/api";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const savedUser = await AsyncStorage.getItem("@user_data");
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.log("Restore user failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
 
   const login = async (email, password) => {
     try {
-      const resp = await loginUser({ email, password });
-      if (resp.data.role) {
-        setUser(resp.data);
-        return resp.data.role;  // Admin / Employee
+      const res = await loginUser({ email, password });
+      if (res.data && res.data.role) {
+        setUser(res.data);
+        await AsyncStorage.setItem("@user_data", JSON.stringify(res.data));
+        return res.data.role;
+      } else {
+        throw new Error("Invalid login response");
       }
-      return null;
     } catch (err) {
-      console.log("Login error:", err?.response?.data || err);
+      console.log("Login error:", err);
       throw err;
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await AsyncStorage.removeItem("@user_data");
     setUser(null);
   };
+
+  if (loading) return null;
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

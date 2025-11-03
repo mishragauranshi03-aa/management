@@ -13,9 +13,11 @@ const ManageTasks = ({ navigation }) => {
   const [assignedTo, setAssignedTo] = useState("");
   const [editingId, setEditingId] = useState(null);
 
+  // ✅ Page load + focus hone par hamesha latest tasks fetch ho
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    const unsubscribe = navigation.addListener("focus", fetchTasks);
+    return unsubscribe;
+  }, [navigation]);
 
   // ✅ Fetch all tasks
   const fetchTasks = async () => {
@@ -23,6 +25,7 @@ const ManageTasks = ({ navigation }) => {
       const res = await getAllTasks();
       setTasks(res.data);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(res.data));
+      console.log("✅ Latest tasks fetched:", res.data);
     } catch (err) {
       console.log("Fetch tasks error:", err?.response?.data || err);
     }
@@ -37,6 +40,7 @@ const ManageTasks = ({ navigation }) => {
         title: title.trim(),
         description: description.trim(),
         assigned_to: assignedTo ? parseInt(assignedTo) : null,
+        status: "Pending",
       };
       await createTask(data);
       await fetchTasks(); // refresh after add
@@ -131,6 +135,9 @@ const ManageTasks = ({ navigation }) => {
             <Text style={styles.cardSubtitle}>
               Assigned To: {task.assigned_to}
             </Text>
+            <Text style={styles.statusText}>
+              Status: {task.status ? task.status : "Pending"}
+            </Text>
           </Card.Content>
 
           <Card.Actions>
@@ -189,6 +196,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 18, fontWeight: "bold", color: "#6200ee" },
   cardSubtitle: { fontSize: 14, color: "#333" },
+  statusText: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#1a73e8",
+    marginTop: 5,
+  },
   editButton: { backgroundColor: "#4CAF50", marginRight: 5 },
   deleteButton: { backgroundColor: "#d32f2f" },
   backButton: {

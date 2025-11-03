@@ -11,11 +11,13 @@ class User(Base):
 
     tasks = relationship("Task", back_populates="assigned_to_user")
 
+
 class Task(Base):
     __tablename__ = "tasks"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200))
     description = Column(String(500))
     assigned_to = Column(Integer, ForeignKey("users.id"))
+    status = Column(String(50), default="Pending")  # ✅ NEW FIELD ADDED
 
     assigned_to_user = relationship("User", back_populates="tasks")
