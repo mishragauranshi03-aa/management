@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000", // ⚠️ use your backend URL if needed
+  baseURL: "http://127.0.0.1:8000", // ⚠ use your backend URL if needed
 });
 
 // ---------- AUTH ----------
@@ -21,4 +21,4 @@ export const updateTask = (id, data) => API.put(`/tasks/${id}`, data);
 
 export const deleteTask = (id) => API.delete(`/tasks/delete/${id}`);
 
-export default API;
+export default API;

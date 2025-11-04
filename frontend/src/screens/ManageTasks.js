@@ -13,28 +13,23 @@ const ManageTasks = ({ navigation }) => {
   const [assignedTo, setAssignedTo] = useState("");
   const [editingId, setEditingId] = useState(null);
 
-  // ✅ Page load + focus hone par hamesha latest tasks fetch ho
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", fetchTasks);
     return unsubscribe;
   }, [navigation]);
 
-  // ✅ Fetch all tasks
   const fetchTasks = async () => {
     try {
       const res = await getAllTasks();
       setTasks(res.data);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(res.data));
-      console.log("✅ Latest tasks fetched:", res.data);
     } catch (err) {
       console.log("Fetch tasks error:", err?.response?.data || err);
     }
   };
 
-  // ✅ Add new task
   const handleAddTask = async () => {
     if (!title.trim()) return alert("Please enter task title");
-
     try {
       const data = {
         title: title.trim(),
@@ -43,7 +38,7 @@ const ManageTasks = ({ navigation }) => {
         status: "Pending",
       };
       await createTask(data);
-      await fetchTasks(); // refresh after add
+      await fetchTasks();
       setTitle("");
       setDescription("");
       setAssignedTo("");
@@ -52,17 +47,15 @@ const ManageTasks = ({ navigation }) => {
     }
   };
 
-  // ✅ Delete task
   const handleDeleteTask = async (id) => {
     try {
       await deleteTask(id);
-      await fetchTasks(); // refresh after delete
+      await fetchTasks();
     } catch (err) {
       console.log("Delete task error:", err?.response?.data || err);
     }
   };
 
-  // ✅ Edit button clicked
   const handleEditClick = (task) => {
     setEditingId(task.id);
     setTitle(task.title);
@@ -70,7 +63,6 @@ const ManageTasks = ({ navigation }) => {
     setAssignedTo(String(task.assigned_to || ""));
   };
 
-  // ✅ Save updated task
   const handleSaveEdit = async () => {
     try {
       const data = {
@@ -80,7 +72,7 @@ const ManageTasks = ({ navigation }) => {
         status: "Pending",
       };
       await updateTask(editingId, data);
-      await fetchTasks(); // refresh after update
+      await fetchTasks();
       setEditingId(null);
       setTitle("");
       setDescription("");
@@ -171,7 +163,6 @@ const ManageTasks = ({ navigation }) => {
   );
 };
 
-// ---------- STYLES ----------
 const styles = StyleSheet.create({
   container: { padding: 20, backgroundColor: "#e8f0fe", flex: 1 },
   title: {
@@ -182,11 +173,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   input: { marginBottom: 10, backgroundColor: "#fff" },
-  addButton: {
-    marginBottom: 20,
-    borderRadius: 30,
-    backgroundColor: "#6200ee",
-  },
+  addButton: { marginBottom: 20, borderRadius: 30, backgroundColor: "#6200ee" },
   card: {
     marginVertical: 8,
     borderRadius: 15,
@@ -196,12 +183,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 18, fontWeight: "bold", color: "#6200ee" },
   cardSubtitle: { fontSize: 14, color: "#333" },
-  statusText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1a73e8",
-    marginTop: 5,
-  },
+  statusText: { fontSize: 15, fontWeight: "bold", color: "#1a73e8", marginTop: 5 },
   editButton: { backgroundColor: "#4CAF50", marginRight: 5 },
   deleteButton: { backgroundColor: "#d32f2f" },
   backButton: {

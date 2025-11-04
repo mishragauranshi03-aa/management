@@ -1,12 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Path
 from sqlalchemy.orm import Session
-from app import crud
+from app import crud, models
 from app.database import get_db
 from pydantic import BaseModel
-from typing import List
-from app import models
-from typing import Optional #🔸 ye line upar imports me add karna na bhoolna
-
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -16,11 +13,6 @@ class TaskCreateRequest(BaseModel):
     description: str
     assigned_to: int
 
-#class TaskUpdateRequest(BaseModel):
-   # title: str
-    #description: str
-   # assigned_to: int
-    #status: str
 
 class TaskUpdateRequest(BaseModel):
     title: Optional[str] = None
@@ -29,21 +21,23 @@ class TaskUpdateRequest(BaseModel):
     status: Optional[str] = None
 
 
-
 class TaskResponse(BaseModel):
     id: int
     title: str
     description: str
     assigned_to: int
+    status: Optional[str] = None  # ✅ include status in response
 
     class Config:
         from_attributes = True
 
-        #  NEW — Get all tasks
+
+# ----- Get all tasks -----
 @router.get("/get", response_model=List[TaskResponse])
 def get_all_tasks(db: Session = Depends(get_db)):
     tasks = crud.get_all_tasks(db)
     return tasks
+
 
 # ----- Get tasks for specific employee -----
 @router.get("/get/{assigned_to}", response_model=List[TaskResponse])
@@ -58,18 +52,28 @@ def create_task(request: TaskCreateRequest, db: Session = Depends(get_db)):
     new_task = crud.create_task(db, request)
     return new_task
 
-# ----- Update Task -----
-#@router.put("/tasks/{task_id}", response_model=TaskResponse)
+
+# ----- Update Task (FULL FIX) -----
 @router.put("/{task_id}", response_model=TaskResponse)
 def update_task(task_id: int, request: TaskUpdateRequest, db: Session = Depends(get_db)):
-    task = crud.update_task(db, task_id, request.title, request.description, request.assigned_to)
+    task = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-     #  Update status
-    task.status = request.status
+
+    # ✅ Update only provided fields
+    if request.title is not None:
+        task.title = request.title
+    if request.description is not None:
+        task.description = request.description
+    if request.assigned_to is not None:
+        task.assigned_to = request.assigned_to
+    if request.status is not None:
+        task.status = request.status
+
     db.commit()
     db.refresh(task)
     return task
+
 
 # ----- Delete Task -----
 @router.delete("/delete/{task_id}")
@@ -78,6 +82,7 @@ def delete_task(task_id: int = Path(...), db: Session = Depends(get_db)):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"message": f"Task {task_id} deleted successfully"}
+
 
 # ----- Get Tasks for User -----
 @router.get("/user/{user_id}", response_model=List[TaskResponse])

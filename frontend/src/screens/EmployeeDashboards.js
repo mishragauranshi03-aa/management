@@ -20,23 +20,40 @@ const EmployeeDashboard = ({ navigation }) => {
     if (user && user.id) {
       fetchTasks();
     }
-  }, [user]); // refresh hone ke baad user milte hi tasks fetch ho jayenge
+  }, [user]);
 
   const fetchTasks = async () => {
     try {
       const res = await getEmployeeTasks(user.id);
       setTasks(res.data || []);
+      console.log("✅ Tasks fetched:", res.data);
     } catch (e) {
-      console.log("Fetch tasks error:", e);
+      console.log("❌ Fetch tasks error:", e);
     }
+  };
+
+  // ✅ Ye function child (TaskCard) se call hoga jab status update hota hai
+  const handleTaskUpdated = () => {
+    // Thoda delay de ke fetchTasks call karna (DB update hone ka time mile)
+    setTimeout(() => {
+      fetchTasks();
+    }, 800);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Title style={styles.title}>My Tasks</Title>
-      {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} onUpdated={fetchTasks} />
-      ))}
+
+      {tasks.length === 0 ? (
+        <Title style={{ textAlign: "center", color: "#666", marginTop: 20 }}>
+          No tasks assigned yet.
+        </Title>
+      ) : (
+        tasks.map((task) => (
+          <TaskCard key={task.id} task={task} onUpdated={handleTaskUpdated} />
+        ))
+      )}
+
       <Button
         mode="outlined"
         style={styles.logoutButton}
