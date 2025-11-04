@@ -20,19 +20,7 @@ class RegisterRequest(BaseModel):
     password: str
     role: str = "Employee"
 
-#login
-
-#@router.post("/login")
-#def login(request: LoginRequest, db: Session = Depends(get_db)):
-  #  user = crud.authenticate_user(db, request.email, request.password)
-   # if not user:
-       # raise HTTPException(status_code=400, detail="Invalid credentials")
-
-    # ✅ Fix: role check add kiya (backend filter)
-    #if user.role != request.role:
-     #   raise HTTPException(status_code=403, detail="Access denied for this role")
-    #return {"id": user.id, "email": user.email, "role": user.role}
-
+#Login
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not request.email.endswith("@gmail.com"):
@@ -55,17 +43,6 @@ def create_user(request: RegisterRequest, db: Session = Depends(get_db)):
        raise HTTPException(status_code=400, detail="Email already registered")
     new_user = crud.create_user(db, request)
     return {"id": new_user.id, "email": new_user.email, "role": new_user.role}
-
-#@router.post("/login")
-#def login(request: LoginRequest, db: Session = Depends(get_db)):
-   # if not request.email.endswith("@gmail.com"):
-        #raise HTTPException(status_code=400, detail="Only Gmail addresses are allowed")
-
-   # user = crud.authenticate_user(db, request.email, request.password)
-   # if not user:
-       # raise HTTPException(status_code=400, detail="Invalid credentials")
-
-  #  return {"id": user.id, "email": user.email, "role": user.role}
 
 
 # ----- Delete User -----

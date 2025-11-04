@@ -11,29 +11,6 @@ const LoginScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const roleFromHome = route.params?.role;
 
- //const handleLogin = async () => {
-  //setLoading(true);
-  //setError('');
-  //try {
-   // const role = await login(email.trim(), password, roleFromHome);
-   // if (role === "Admin") navigation.replace('AdminDashboard');
-    //else if (role === "Employee") navigation.replace('EmployeeDashboard');
-   // else setError('Invalid login credentials');
-  //} catch (e) {
-   // console.log("Login error:", e.response?.data || e.message);
-
-   // if (e.response?.data?.detail === "Access denied for this role") {
-      //setError("Access denied for this role");
-    //} else if (e.response?.data?.detail === "Invalid credentials") {
-     // setError("Login failed. Please check your credentials.");
-    //} else {
-     // setError("Login failed. Please try again.");
-    //}
-  //} finally {
-   // setLoading(false);
-  //}
-//};
-
 const handleLogin = async () => {
   setError('');
 
