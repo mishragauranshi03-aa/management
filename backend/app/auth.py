@@ -8,22 +8,33 @@ from app.database import get_db
 router = APIRouter()
 
 # ----- Schemas -----
+
 class LoginRequest(BaseModel):
     email: str
     password: str
+    role: str  # ✅ Added role field for role-based login check
+
 
 class RegisterRequest(BaseModel):
     email: str
     password: str
     role: str = "Employee"
 
-# ----- Login -----
+#login
+
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = crud.authenticate_user(db, request.email, request.password)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    # ✅ Fix: role check add kiya (backend filter)
+    if user.role != request.role:
+        raise HTTPException(status_code=403, detail="Access denied for this role")
+
     return {"id": user.id, "email": user.email, "role": user.role}
+
+
 
 # ----- Create User -----
 @router.post("/createuser")

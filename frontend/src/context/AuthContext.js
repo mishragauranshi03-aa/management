@@ -24,21 +24,22 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const res = await loginUser({ email, password });
-      if (res.data && res.data.role) {
-        setUser(res.data);
-        await AsyncStorage.setItem("@user_data", JSON.stringify(res.data));
-        return res.data.role;
-      } else {
-        throw new Error("Invalid login response");
-      }
-    } catch (err) {
-      console.log("Login error:", err);
-      throw err;
+  const login = async (email, password, role) => {
+  try {
+    const res = await loginUser({ email, password, role }); // 👈 role send kar rahe hain
+    if (res.data && res.data.role) {
+      setUser(res.data);
+      await AsyncStorage.setItem("@user_data", JSON.stringify(res.data));
+      return res.data.role;
+    } else {
+      throw new Error("Invalid login response");
     }
-  };
+  } catch (err) {
+    console.log("Login error:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
 
   const logout = async () => {
     await AsyncStorage.removeItem("@user_data");

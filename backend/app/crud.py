@@ -24,10 +24,9 @@ def create_user(db: Session, user):
     return db_user
 
 def authenticate_user(db: Session, email: str, password: str):
-    user = get_user_by_email(db, email)
-    if not user or user.password != password:
-        return None
+    user = db.query(models.User).filter(models.User.email == email, models.User.password == password).first()
     return user
+
 
 def get_users(db: Session):
     return db.query(models.User).all()

@@ -15,16 +15,25 @@ const LoginScreen = ({ route, navigation }) => {
     setLoading(true);
     setError('');
     try {
-      const role = await login(email.trim(), password);
+    const role = await login(email.trim(), password, roleFromHome);
       if (role === "Admin") navigation.replace('AdminDashboard');
       else if (role === "Employee") navigation.replace('EmployeeDashboard');
       else setError('Invalid login credentials');
     } catch (e) {
-      setError('Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
+      
+    console.log("Login error:", e.response?.data || e.message);
+
+    if (e.response?.data?.detail === "Access denied for this role") {
+      setError("Access denied for this role");
+    } else if (e.response?.data?.detail === "Invalid credentials") {
+      setError("Login failed. Please check your credentials.");
+    } else {
+      setError("Login failed. Please try again.");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView
