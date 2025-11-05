@@ -1,4 +1,3 @@
-print(">>> auth.py start")
 from fastapi import APIRouter, HTTPException, Depends, Path
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -8,7 +7,6 @@ from app.database import get_db
 router = APIRouter()
 
 # ----- Schemas -----
-
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -20,16 +18,18 @@ class RegisterRequest(BaseModel):
     password: str
     role: str = "Employee"
 
-#Login
+
+# ----- Login -----
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not request.email.endswith("@gmail.com"):
         raise HTTPException(status_code=400, detail="Only Gmail addresses are allowed")
+
     user = crud.authenticate_user(db, request.email, request.password)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-     #✅ Fix: role check add kiya (backend filter)
+    # ✅ Fix: role check add kiya (backend filter)
     if user.role != request.role:
         raise HTTPException(status_code=403, detail="Access denied for this role")
     return {"id": user.id, "email": user.email, "role": user.role}
@@ -40,7 +40,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
 def create_user(request: RegisterRequest, db: Session = Depends(get_db)):
     existing_user = crud.get_user_by_email(db, request.email)
     if existing_user:
-       raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Email already registered")
     new_user = crud.create_user(db, request)
     return {"id": new_user.id, "email": new_user.email, "role": new_user.role}
 
@@ -53,12 +53,13 @@ def delete_user(user_id: int = Path(...), db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": f"User {user_id} deleted successfully"}
 
-# ----- Update User -----
+
+# ----- Update User (FIXED) -----
 from pydantic import BaseModel
 
 class UpdateUserRequest(BaseModel):
     email: str
-    password: str
+    password: str | None = None  # ✅ Password optional
     role: str
 
 @router.put("/updateuser/{user_id}")
@@ -66,9 +67,15 @@ def update_user(user_id: int, request: UpdateUserRequest, db: Session = Depends(
     user = crud.get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # ✅ Always update email and role
     user.email = request.email
-    user.password = request.password
     user.role = request.role
+
+    # ✅ Only update password if provided (not empty)
+    if request.password and request.password.strip() != "":
+        user.password = request.password  # or use your hash_password() here
+
     db.commit()
     db.refresh(user)
     return {"message": f"User {user_id} updated successfully", "user": user}

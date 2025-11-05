@@ -13,6 +13,8 @@ const ManageEmployees = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("Employee");
   const [editingId, setEditingId] = useState(null);
+  const [emailError, setEmailError] = useState("");
+
 
   // ✅ Screen setup
   useFocusEffect(
@@ -45,6 +47,12 @@ const ManageEmployees = ({ navigation }) => {
   // ✅ Add new employee/admin
   const addEmployee = async () => {
     if (!email || !password) return alert("Please enter email and password");
+      if (!email.toLowerCase().endsWith("@gmail.com")) {
+      setEmailError("Only @gmail.com email addresses are allowed");
+      return; // गलत email पर function यहीं रुक जाएगा
+  }
+  setEmailError("");
+
     try {
       const data = { email, password, role };
       const resp = await api.post("/auth/createuser", data);
@@ -74,30 +82,69 @@ const ManageEmployees = ({ navigation }) => {
   const handleEditClick = (emp) => {
     setEditingId(emp.id);
     setEmail(emp.email);
-    setPassword(""); // reset password field for security
+    setPassword("");
     setRole(emp.role);
   };
 
   // ✅ Save changes after editing
-  const handleSaveEdit = async () => {
-    try {
-      const data = { email, password, role };
-      await updateUser(editingId, data);
+const handleSaveEdit = async () => {
+  // Gmail validation
+  if (!email.toLowerCase().endsWith("@gmail.com")) {
+    setEmailError("Only @gmail.com emails are allowed");
+    return;
+  }
+  setEmailError("");
 
-      const updated = employees.map((emp) =>
-        emp.id === editingId ? { ...emp, email, role } : emp
-      );
+  try {
+    // 🧠 Find current employee record from state
+    const existingEmp = employees.find((e) => e.id === editingId);
 
-      setEmployees(updated);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      setEditingId(null);
-      setEmail("");
-      setPassword("");
-      setRole("Employee");
-    } catch (err) {
-      console.log("Update employee error:", err?.response?.data || err);
+    // ✅ अगर user ने नया password नहीं डाला है
+    // तो finalPassword backend को मत भेजो (या पुराना रखो)
+    let payload;
+    if (password && password.trim() !== "") {
+      // नया password दिया गया है
+      payload = { email, password, role };
+    } else {
+      // password खाली छोड़ा गया है
+      // backend को पुराना password दो ताकि वो null ना हो
+      payload = {
+        email,
+        password: existingEmp?.password || undefined,
+        role,
+      };
     }
-  };
+
+    // ✅ अगर password undefined है तो उसे body से हटा दो
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined) delete payload[key];
+    });
+
+    // API call
+    await updateUser(editingId, payload);
+
+    // Local list update
+    const updated = employees.map((emp) =>
+      emp.id === editingId
+        ? { ...emp, email, role, password: payload.password || emp.password }
+        : emp
+    );
+
+    setEmployees(updated);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // Reset fields
+    setEditingId(null);
+    setEmail("");
+    setPassword("");
+    setRole("Employee");
+  } catch (err) {
+    console.log("Update employee error:", err?.response?.data || err);
+  }
+};
+
+
+
 
   return (
     <View style={styles.screen}>
@@ -106,21 +153,35 @@ const ManageEmployees = ({ navigation }) => {
           {editingId ? "Edit Employee/Admin" : "Add Employee/Admin"}
         </Title>
 
-        <TextInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          style={styles.input}
-          mode="outlined"
-        />
-        <TextInput
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          style={styles.input}
-          mode="outlined"
-          secureTextEntry
-        />
+ <TextInput
+  label="Email"
+  value={email}
+  onChangeText={(text) => {
+    setEmail(text);
+    if (text.toLowerCase().endsWith("@gmail.com")) setEmailError("");
+  }}
+  style={styles.input}
+  mode="outlined"
+  error={!!emailError}
+  right={
+    emailError ? (
+      <TextInput.Affix
+        text="Only @gmail.com email addresses are allowed"
+        textStyle={{ color: "red", fontSize: 15 }}
+      />
+    ) : null
+  }
+/>
+
+       <TextInput
+  label={editingId ? "Password (leave blank to keep same)" : "Password"}
+  value={password}
+  onChangeText={setPassword}
+  style={styles.input}
+  mode="outlined"
+  secureTextEntry
+/>
+
         <TextInput
           label="Role (Admin/Employee)"
           value={role}
