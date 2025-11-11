@@ -16,7 +16,7 @@ const ManageEmployees = ({ navigation }) => {
   const [emailError, setEmailError] = useState("");
 
 
-  // ✅ Screen setup
+  //  Screen setup
   useFocusEffect(
     useCallback(() => {
       navigation.setOptions({
@@ -28,7 +28,7 @@ const ManageEmployees = ({ navigation }) => {
     }, [navigation])
   );
 
-  // ✅ Load all users from backend
+  //  Load all users from backend
   useFocusEffect(
     useCallback(() => {
       const loadAndFetch = async () => {
@@ -44,12 +44,12 @@ const ManageEmployees = ({ navigation }) => {
     }, [])
   );
 
-  // ✅ Add new employee/admin
+  //  Add new employee/admin
   const addEmployee = async () => {
     if (!email || !password) return alert("Please enter email and password");
       if (!email.toLowerCase().endsWith("@gmail.com")) {
       setEmailError("Only @gmail.com email addresses are allowed");
-      return; // गलत email पर function यहीं रुक जाएगा
+      return;
   }
   setEmailError("");
 
@@ -66,7 +66,7 @@ const ManageEmployees = ({ navigation }) => {
     }
   };
 
-  // ✅ Delete employee
+  //  Delete employee
   const handleDeleteEmployee = async (id) => {
     try {
       await deleteUser(id);
@@ -78,7 +78,7 @@ const ManageEmployees = ({ navigation }) => {
     }
   };
 
-  // ✅ Edit button clicked
+  //  Edit button clicked
   const handleEditClick = (emp) => {
     setEditingId(emp.id);
     setEmail(emp.email);
@@ -86,7 +86,7 @@ const ManageEmployees = ({ navigation }) => {
     setRole(emp.role);
   };
 
-  // ✅ Save changes after editing
+  //  Save changes after editing
 const handleSaveEdit = async () => {
   // Gmail validation
   if (!email.toLowerCase().endsWith("@gmail.com")) {
@@ -96,18 +96,13 @@ const handleSaveEdit = async () => {
   setEmailError("");
 
   try {
-    // 🧠 Find current employee record from state
+    //  Find current employee record from state
     const existingEmp = employees.find((e) => e.id === editingId);
 
-    // ✅ अगर user ने नया password नहीं डाला है
-    // तो finalPassword backend को मत भेजो (या पुराना रखो)
     let payload;
     if (password && password.trim() !== "") {
-      // नया password दिया गया है
       payload = { email, password, role };
     } else {
-      // password खाली छोड़ा गया है
-      // backend को पुराना password दो ताकि वो null ना हो
       payload = {
         email,
         password: existingEmp?.password || undefined,
@@ -115,7 +110,6 @@ const handleSaveEdit = async () => {
       };
     }
 
-    // ✅ अगर password undefined है तो उसे body से हटा दो
     Object.keys(payload).forEach((key) => {
       if (payload[key] === undefined) delete payload[key];
     });
@@ -142,9 +136,6 @@ const handleSaveEdit = async () => {
     console.log("Update employee error:", err?.response?.data || err);
   }
 };
-
-
-
 
   return (
     <View style={styles.screen}>
