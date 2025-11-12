@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from . import models
 
 
+
 # ============================
 # ----- USER CRUD -----
 # ============================
@@ -14,6 +15,7 @@ def get_user_by_id(db: Session, user_id: int):
 
 def create_user(db: Session, user):
     db_user = models.User(
+        username=user.username,
         email=user.email,
         password=user.password,
         role=user.role

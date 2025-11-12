@@ -8,12 +8,14 @@ router = APIRouter()
 
 # ----- Schemas -----
 class LoginRequest(BaseModel):
+    username: str
     email: str
     password: str
     role: str  # ✅ Added role field for role-based login check
 
 
 class RegisterRequest(BaseModel):
+    username: str
     email: str
     password: str
     role: str = "Employee"
@@ -42,7 +44,7 @@ def create_user(request: RegisterRequest, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     new_user = crud.create_user(db, request)
-    return {"id": new_user.id, "email": new_user.email, "role": new_user.role}
+    return {"id": new_user.id, "username": new_user.username, "email": new_user.email, "role": new_user.role}
 
 
 # ----- Delete User -----
@@ -58,6 +60,7 @@ def delete_user(user_id: int = Path(...), db: Session = Depends(get_db)):
 from pydantic import BaseModel
 
 class UpdateUserRequest(BaseModel):
+    username: str
     email: str
     password: str | None = None  # ✅ Password optional
     role: str
@@ -69,6 +72,7 @@ def update_user(user_id: int, request: UpdateUserRequest, db: Session = Depends(
         raise HTTPException(status_code=404, detail="User not found")
 
     # ✅ Always update email and role
+    user.username = request.username
     user.email = request.email
     user.role = request.role
 
