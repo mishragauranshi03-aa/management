@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Card, TextInput, Button, Text, Title, Snackbar } from "react-native-paper";
+import { Card, TextInput, Button, Text, Title, Snackbar, Modal, Portal } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api, { deleteUser, updateUser } from "../api/api";
@@ -17,6 +17,10 @@ const ManageEmployees = ({ navigation }) => {
   const [role, setRole] = useState("Employee");
   const [editingId, setEditingId] = useState(null);
   const [emailError, setEmailError] = useState("");
+
+  // 🔥 NEW STATES (delete popup)
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -67,15 +71,25 @@ const ManageEmployees = ({ navigation }) => {
     }
   };
 
-  const handleDeleteEmployee = async (id) => {
+  const handleDeleteEmployee = (id) => {
+    setSelectedUserId(id);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await deleteUser(id);
-      const updated = employees.filter((emp) => emp.id !== id);
+      await deleteUser(selectedUserId);
+
+      const updated = employees.filter((emp) => emp.id !== selectedUserId);
       setEmployees(updated);
+
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+      setDeleteModalVisible(false);
+
       showSnackbar("User Deleted Successfully ! ✅");
     } catch (err) {
-      console.log("Delete employee error:", err?.response?.data || err);
+      console.log("Confirm delete error:", err);
     }
   };
 
@@ -144,7 +158,7 @@ const ManageEmployees = ({ navigation }) => {
 
   return (
     <View style={styles.screen}>
-      {/* ✅ Snackbar Top-Centered */}
+      {/* TOP SNACKBAR */}
       <View style={styles.snackbarContainer}>
         <Snackbar
           visible={visible}
@@ -155,6 +169,27 @@ const ManageEmployees = ({ navigation }) => {
           <Text style={styles.snackbarText}>{snackbarMessage}</Text>
         </Snackbar>
       </View>
+
+      {/* 🔥 DELETE CONFIRMATION POPUP */}
+      <Portal>
+        <Modal
+          visible={deleteModalVisible}
+          onDismiss={() => setDeleteModalVisible(false)}
+          contentContainerStyle={styles.modalBox}
+        >
+          <Text style={styles.modalTitle}>⚠️ Are you sure you want to delete?</Text>
+
+          <View style={styles.modalButtons}>
+            <Button mode="contained" onPress={() => setDeleteModalVisible(false)} style={styles.noBtn}>
+              No
+            </Button>
+
+            <Button mode="contained" onPress={confirmDelete} style={styles.yesBtn}>
+              Yes
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContainer}>
         <Title style={styles.title}>
@@ -169,22 +204,20 @@ const ManageEmployees = ({ navigation }) => {
           mode="outlined"
         />
 
-      <View style={{ position: "relative" }}>
-  <TextInput
-    label="Email"
-    value={email}
-    onChangeText={(text) => {
-      setEmail(text);
-      if (text.toLowerCase().endsWith("@gmail.com")) setEmailError("");
-    }}
-    style={styles.input}
-    mode="outlined"
-    error={!!emailError}
-  />
-  {emailError !== "" && (
-    <Text style={styles.insideErrorText}>Only @gmail.com allowed</Text>
-  )}
-</View>
+        <View style={{ position: "relative" }}>
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (text.toLowerCase().endsWith("@gmail.com")) setEmailError("");
+            }}
+            style={styles.input}
+            mode="outlined"
+            error={!!emailError}
+          />
+          {emailError !== "" && <Text style={styles.insideErrorText}>Only @gmail.com allowed</Text>}
+        </View>
 
         <TextInput
           label={editingId ? "Password (leave blank to keep same)" : "Password"}
@@ -221,14 +254,10 @@ const ManageEmployees = ({ navigation }) => {
             </Card.Content>
 
             <Card.Actions>
-              <Button
-                mode="outlined"
-                onPress={() => handleEditClick(emp)}
-                style={styles.editButton}
-                textColor="#fff"
-              >
+              <Button mode="outlined" onPress={() => handleEditClick(emp)} style={styles.editButton} textColor="#fff">
                 Edit
               </Button>
+
               <Button
                 mode="contained"
                 onPress={() => handleDeleteEmployee(emp.id)}
@@ -269,16 +298,14 @@ const styles = StyleSheet.create({
   cardSubtitle: { fontSize: 14, color: "#333" },
 
   insideErrorText: {
-  position: "absolute",
-  right: 12,
-  top: 20,
-  color: "red",
-  fontWeight: "900",
-  fontSize: 16,
-},
+    position: "absolute",
+    right: 12,
+    top: 20,
+    color: "red",
+    fontWeight: "900",
+    fontSize: 16,
+  },
 
-
-  // ✅ Snackbar Style
   snackbarContainer: {
     position: "absolute",
     top: 80,
@@ -299,6 +326,29 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     textAlign: "center",
   },
+
+  // 🔥 POPUP STYLES
+  modalBox: {
+    backgroundColor: "#fff",
+    padding: 20,
+    marginHorizontal: 30,
+    borderRadius: 12,
+    elevation: 10,
+    width: 300,
+    alignSelf: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 25,
+  },
+  noBtn: { backgroundColor: "#777", width: "45%" },
+  yesBtn: { backgroundColor: "#d32f2f", width: "45%" },
 });
 
 export default ManageEmployees;
