@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { Card, TextInput, Button, Text, Title } from "react-native-paper";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Card, TextInput, Button, Text, Title, Snackbar } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAllTasks, createTask, deleteTask, updateTask } from "../api/api";
 
@@ -12,6 +12,16 @@ const ManageTasks = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [editingId, setEditingId] = useState(null);
+
+  // Snackbar States
+  const [visible, setVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+
+  const showSnackbar = (msg) => {
+    setSnackbarMessage(msg);
+    setVisible(true);
+    setTimeout(() => setVisible(false), 2000);
+  };
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", fetchTasks);
@@ -37,11 +47,14 @@ const ManageTasks = ({ navigation }) => {
         assigned_to: assignedTo ? parseInt(assignedTo) : null,
         status: "Pending",
       };
+
       await createTask(data);
       await fetchTasks();
       setTitle("");
       setDescription("");
       setAssignedTo("");
+
+      showSnackbar("Task Added Successfully ! ✅");
     } catch (err) {
       console.log("Add task error:", err?.response?.data || err);
     }
@@ -51,6 +64,7 @@ const ManageTasks = ({ navigation }) => {
     try {
       await deleteTask(id);
       await fetchTasks();
+      showSnackbar("Task Deleted Successfully ! ✅");
     } catch (err) {
       console.log("Delete task error:", err?.response?.data || err);
     }
@@ -71,100 +85,138 @@ const ManageTasks = ({ navigation }) => {
         assigned_to: parseInt(assignedTo) || null,
         status: "Pending",
       };
+
       await updateTask(editingId, data);
       await fetchTasks();
+
       setEditingId(null);
       setTitle("");
       setDescription("");
       setAssignedTo("");
+
+      showSnackbar("Saved Successfully ! ✅");
     } catch (err) {
       console.log("Update task error:", err?.response?.data || err);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Title style={styles.title}>
-        {editingId ? "Edit Task" : "Add Task"}
-      </Title>
+    <View style={{ flex: 1 }}>
+      
+      {/* ✅ Snackbar Top-Centered (Same as ManageEmployees) */}
+      <View style={styles.snackbarContainer}>
+        <Snackbar
+          visible={visible}
+          onDismiss={() => setVisible(false)}
+          duration={2000}
+          style={styles.snackbar}
+        >
+          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+        </Snackbar>
+      </View>
 
-      <TextInput
-        label="Title"
-        value={title}
-        onChangeText={setTitle}
-        style={styles.input}
-        mode="outlined"
-      />
-      <TextInput
-        label="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-        mode="outlined"
-      />
-      <TextInput
-        label="Assign To (User ID)"
-        value={assignedTo}
-        onChangeText={setAssignedTo}
-        style={styles.input}
-        mode="outlined"
-        keyboardType="numeric"
-      />
+      <ScrollView style={styles.container}>
+        <Title style={styles.title}>{editingId ? "Edit Task" : "Add Task"}</Title>
 
-      <Button
-        mode="contained"
-        style={styles.addButton}
-        onPress={editingId ? handleSaveEdit : handleAddTask}
-      >
-        {editingId ? "Save Changes" : "Add Task"}
-      </Button>
+        <TextInput
+          label="Title"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+          mode="outlined"
+        />
+        <TextInput
+          label="Description"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+          mode="outlined"
+        />
+        <TextInput
+          label="Assign To (User ID)"
+          value={assignedTo}
+          onChangeText={setAssignedTo}
+          style={styles.input}
+          mode="outlined"
+          keyboardType="numeric"
+        />
 
-      {tasks.map((task) => (
-        <Card key={task.id} style={styles.card}>
-          <Card.Content>
-            <Text style={styles.cardTitle}>{task.title}</Text>
-            <Text style={styles.cardSubtitle}>{task.description}</Text>
-            <Text style={styles.cardSubtitle}>
-              Assigned To: {task.assigned_to}
-            </Text>
-            <Text style={styles.statusText}>
-              Status: {task.status ? task.status : "Pending"}
-            </Text>
-          </Card.Content>
+        <Button
+          mode="contained"
+          style={styles.addButton}
+          onPress={editingId ? handleSaveEdit : handleAddTask}
+        >
+          {editingId ? "Save Changes" : "Add Task"}
+        </Button>
 
-          <Card.Actions>
-            <Button
-              mode="outlined"
-              style={styles.editButton}
-              onPress={() => handleEditClick(task)}
-              textColor="#fff"
-            >
-              Edit
-            </Button>
-            <Button
-              mode="contained"
-              style={styles.deleteButton}
-              onPress={() => handleDeleteTask(task.id)}
-            >
-              Delete
-            </Button>
-          </Card.Actions>
-        </Card>
-      ))}
+        {tasks.map((task) => (
+          <Card key={task.id} style={styles.card}>
+            <Card.Content>
+              <Text style={styles.cardTitle}>{task.title}</Text>
+              <Text style={styles.cardSubtitle}>{task.description}</Text>
+              <Text style={styles.cardSubtitle}>Assigned To: {task.assigned_to}</Text>
+              <Text style={styles.statusText}>
+                Status: {task.status || "Pending"}
+              </Text>
+            </Card.Content>
 
-      <Button
-        mode="outlined"
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        Back
-      </Button>
-    </ScrollView>
+            <Card.Actions>
+              <Button
+                mode="outlined"
+                style={styles.editButton}
+                onPress={() => handleEditClick(task)}
+                textColor="#fff"
+              >
+                Edit
+              </Button>
+              <Button
+                mode="contained"
+                style={styles.deleteButton}
+                onPress={() => handleDeleteTask(task.id)}
+              >
+                Delete
+              </Button>
+            </Card.Actions>
+          </Card>
+        ))}
+
+        <Button
+          mode="outlined"
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          Back
+        </Button>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { padding: 20, backgroundColor: "#e8f0fe", flex: 1 },
+
+  // SAME SNACKBAR STYLE FROM MANAGEEMPLOYEES
+  snackbarContainer: {
+    position: "absolute",
+    top: 80,
+    width: "100%",
+    alignItems: "center",
+    zIndex: 100,
+  },
+  snackbar: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    elevation: 5,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+  },
+  snackbarText: {
+    color: "green",
+    fontSize: 20,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
   title: {
     fontSize: 24,
     fontWeight: "bold",

@@ -3,15 +3,15 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app import crud
 from app.database import get_db
+from typing import Optional
 
 router = APIRouter()
 
-# ----- Schemas -----
 class LoginRequest(BaseModel):
-    username: str
     email: str
     password: str
-    role: str  # ✅ Added role field for role-based login check
+    username: Optional[str] = None
+    role: Optional[str] = None
 
 
 class RegisterRequest(BaseModel):
@@ -24,17 +24,36 @@ class RegisterRequest(BaseModel):
 # ----- Login -----
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
+
+    # Gmail check
     if not request.email.endswith("@gmail.com"):
         raise HTTPException(status_code=400, detail="Only Gmail addresses are allowed")
 
     user = crud.authenticate_user(db, request.email, request.password)
+    
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    # ✅ Fix: role check add kiya (backend filter)
-    if user.role != request.role:
+    # Optional role check
+    if request.role and user.role != request.role:
         raise HTTPException(status_code=403, detail="Access denied for this role")
-    return {"id": user.id, "email": user.email, "role": user.role}
+
+    # ✅ Proper JSON response (frontend expects this)
+    return {
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "role": user.role
+    }
+
+
+    # ✅ Fix: role check add kiya (backend filter)
+   # if user.role != request.role:
+       # raise HTTPException(status_code=403, detail="Access denied for this role")
+   # return {"id": user.id, "email": user.email, "role": user.role}
+
+    if request.role is not None and user.role != request.role:
+      raise HTTPException(status_code=403, detail="Access denied for this role")
 
 
 # ----- Create User -----
