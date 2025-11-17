@@ -9,7 +9,6 @@ class User(Base):
     email = Column(String(100), unique=True, index=True)
     password = Column(String(100))
     role = Column(String(20))  # Admin / Employee
-
     tasks = relationship("Task", back_populates="assigned_to_user")
 
 
@@ -19,6 +18,7 @@ class Task(Base):
     title = Column(String(200))
     description = Column(String(500))
     assigned_to = Column(Integer, ForeignKey("users.id"))
-    status = Column(String(50), default="Pending")  # ✅ NEW FIELD ADDED
+    status = Column(String(50), default="Pending")  #  NEW FIELD ADDED
+    comment = Column(String, nullable=True)
 
     assigned_to_user = relationship("User", back_populates="tasks")

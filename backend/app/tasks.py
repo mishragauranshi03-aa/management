@@ -12,6 +12,7 @@ class TaskCreateRequest(BaseModel):
     title: str
     description: str
     assigned_to: int
+    comment: str = ""
 
 
 class TaskUpdateRequest(BaseModel):
@@ -19,6 +20,7 @@ class TaskUpdateRequest(BaseModel):
     description: Optional[str] = None
     assigned_to: Optional[int] = None
     status: Optional[str] = None
+    comment: Optional[str] = None
 
 
 class TaskResponse(BaseModel):
@@ -27,6 +29,7 @@ class TaskResponse(BaseModel):
     description: str
     assigned_to: int
     status: Optional[str] = None  # ✅ include status in response
+    comment: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -69,10 +72,14 @@ def update_task(task_id: int, request: TaskUpdateRequest, db: Session = Depends(
         task.assigned_to = request.assigned_to
     if request.status is not None:
         task.status = request.status
+    if request.comment is not None:
+        task.comment = request.comment
+
 
     db.commit()
     db.refresh(task)
     return task
+
 
 
 # ----- Delete Task -----

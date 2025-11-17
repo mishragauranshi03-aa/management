@@ -18,7 +18,7 @@ const ManageEmployees = ({ navigation }) => {
   const [editingId, setEditingId] = useState(null);
   const [emailError, setEmailError] = useState("");
 
-  // 🔥 NEW STATES (delete popup)
+  //  NEW STATES (delete popup)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
@@ -170,7 +170,7 @@ const ManageEmployees = ({ navigation }) => {
         </Snackbar>
       </View>
 
-      {/* 🔥 DELETE CONFIRMATION POPUP */}
+      {/*  DELETE CONFIRMATION POPUP */}
       <Portal>
         <Modal
           visible={deleteModalVisible}
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // 🔥 POPUP STYLES
+  //  POPUP STYLES
   modalBox: {
     backgroundColor: "#fff",
     padding: 20,

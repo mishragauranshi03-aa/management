@@ -12,6 +12,8 @@ const ManageTasks = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [comment, setComment] = useState("");
+
 
   // Snackbar
   const [visible, setVisible] = useState(false);
@@ -50,6 +52,7 @@ const ManageTasks = ({ navigation }) => {
         title: title.trim(),
         description: description.trim(),
         assigned_to: assignedTo ? parseInt(assignedTo) : null,
+        comment: comment.trim(),
         status: "Pending",
       };
 
@@ -88,6 +91,8 @@ const ManageTasks = ({ navigation }) => {
     setTitle(task.title);
     setDescription(task.description);
     setAssignedTo(String(task.assigned_to || ""));
+    setComment(task.comment || "");
+
   };
 
   const handleSaveEdit = async () => {
@@ -96,6 +101,7 @@ const ManageTasks = ({ navigation }) => {
         title: title.trim(),
         description: description.trim(),
         assigned_to: parseInt(assignedTo) || null,
+        comment: comment.trim(),
         status: "Pending",
       };
 
@@ -186,6 +192,15 @@ const ManageTasks = ({ navigation }) => {
           keyboardType="numeric"
         />
 
+        <TextInput
+          label="Comment"
+          value={comment}
+          onChangeText={setComment}
+          style={styles.input}
+          mode="outlined"
+        />
+
+
         <Button
           mode="contained"
           style={styles.addButton}
@@ -200,6 +215,7 @@ const ManageTasks = ({ navigation }) => {
               <Text style={styles.cardTitle}>{task.title}</Text>
               <Text style={styles.cardSubtitle}>{task.description}</Text>
               <Text style={styles.cardSubtitle}>Assigned To: {task.assigned_to}</Text>
+              <Text style={styles.cardSubtitle}>Comment: {task.comment}</Text>
               <Text style={styles.statusText}>Status: {task.status || "Pending"}</Text>
             </Card.Content>
 

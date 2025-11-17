@@ -14,7 +14,7 @@ const LoginScreen = ({ route, navigation }) => {
 const handleLogin = async () => {
   setError('');
 
-  // ✅ Gmail validation
+  //  Gmail validation
   if (!email.endsWith("@gmail.com")) {
     setError("Only Gmail addresses are allowed.");
     return;

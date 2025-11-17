@@ -52,8 +52,10 @@ def create_task(db: Session, task):
     db_task = models.Task(
         title=task.title,
         description=task.description,
-        assigned_to=task.assigned_to
-    )
+        assigned_to=task.assigned_to,
+        comment=task.comment
+        
+      )
     db.add(db_task)
     db.commit()
     db.refresh(db_task)

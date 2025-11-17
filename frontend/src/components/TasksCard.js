@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Paragraph } from "react-native-paper";
+import { Card, Button, Paragraph, TextInput } from "react-native-paper";
 import { StyleSheet, Alert } from "react-native";
 import { updateTask } from "../api/api";
 
 const TasksCard = ({ task, onUpdated }) => {
   const [status, setStatus] = useState(task?.status ?? "Pending");
+  const [comment, setComment] = useState(task?.comment || "");
 
-  // ✅ Parent se status aaye to update karo
+  //  Parent se status aaye to update karo
   useEffect(() => {
     if (task?.status) setStatus(task.status);
   }, [task?.status]);
 
   const updateStatus = async () => {
-    console.log("🔹 Click hua:", status);
+    console.log(" Click hua:", status);
 
     let newStatus = "Pending";
     if (status === "Pending") newStatus = "In Progress";
@@ -20,18 +21,27 @@ const TasksCard = ({ task, onUpdated }) => {
 
     try {
       await updateTask(task.id, { ...task, status: newStatus });
-      console.log("✅ Status updated in backend");
+      console.log(" Status updated in backend");
 
-      // ✅ Frontend turant update ho
       setStatus(newStatus);
 
-      // ⚠️ Thoda delay de ke parent reload karo (DB ko update hone ka time mile)
       setTimeout(() => {
         if (onUpdated) onUpdated();
       }, 800);
     } catch (err) {
-      console.log("❌ Update Error:", err?.message);
+      console.log("Update Error:", err?.message);
       Alert.alert("Error", "Status update failed");
+    }
+  };
+
+  //  NEW — Comment Update Function
+  const updateComment = async () => {
+    try {
+      await updateTask(task.id, { ...task, comment });
+      if (onUpdated) onUpdated();
+    } catch (err) {
+      console.log(" Comment Update Error:", err?.message);
+      Alert.alert("Error", "Comment update failed");
     }
   };
 
@@ -41,12 +51,40 @@ const TasksCard = ({ task, onUpdated }) => {
         <Paragraph style={styles.title}>{task.title}</Paragraph>
         <Paragraph>{task.description}</Paragraph>
         <Paragraph>Status: {status}</Paragraph>
+
+        {/*  COMMENT INPUT */}
+        <TextInput
+          label="Comment"
+          value={comment}
+          onChangeText={setComment}
+          mode="outlined"
+          style={{ marginTop: 10 }}
+        />
       </Card.Content>
+
       <Card.Actions>
         {status !== "Completed" && (
-          <Button mode="contained" onPress={updateStatus} style={styles.button}>
-            Next Status
-          </Button>
+          <>
+            {/* NEXT STATUS BUTTON */}
+            <Button
+              mode="contained"
+              onPress={updateStatus}
+              style={styles.button}
+              labelStyle={{ fontWeight: "bold" }}
+            >
+              Next Status
+            </Button>
+
+            {/* SAVE COMMENT BUTTON (with spacing) */}
+            <Button
+              mode="contained"
+              onPress={updateComment}
+              style={[styles.button, { marginLeft: 10 }]}  
+              labelStyle={{ fontWeight: "bold" }}
+            >
+              Save Comment
+            </Button>
+          </>
         )}
       </Card.Actions>
     </Card>

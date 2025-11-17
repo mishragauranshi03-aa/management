@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role) => {
   try {
-    const res = await loginUser({ email, password, role }); // 👈 role send kar rahe hain
+    const res = await loginUser({ email, password, role }); //  role send kar rahe hain
     if (res.data && res.data.role) {
       setUser(res.data);
       await AsyncStorage.setItem("@user_data", JSON.stringify(res.data));

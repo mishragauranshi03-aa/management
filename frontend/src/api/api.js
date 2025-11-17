@@ -16,7 +16,7 @@ export const getAllTasks = () => API.get("/tasks/get");
 export const getEmployeeTasks = (id) => API.get(`/tasks/get/${id}`);
 export const createTask = (data) => API.post("/tasks/", data);
 
-// ✅ fix: correct endpoint + consistent status updates
+//  fix: correct endpoint + consistent status updates
 export const updateTask = (id, data) => API.put(`/tasks/${id}`, data);
 
 export const deleteTask = (id) => API.delete(`/tasks/delete/${id}`);
