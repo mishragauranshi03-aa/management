@@ -28,7 +28,7 @@ class TaskResponse(BaseModel):
     title: str
     description: str
     assigned_to: int
-    status: Optional[str] = None  # ✅ include status in response
+    status: Optional[str] = None  #  include status in response
     comment: Optional[str] = None
 
     class Config:
@@ -52,8 +52,15 @@ def get_tasks_for_employee(assigned_to: int, db: Session = Depends(get_db)):
 # ----- Create Task -----
 @router.post("/", response_model=TaskResponse)
 def create_task(request: TaskCreateRequest, db: Session = Depends(get_db)):
+
+    #  CHECK IF USER EXISTS
+    assigned_user = db.query(models.User).filter(models.User.id == request.assigned_to).first()
+    if not assigned_user:
+        raise HTTPException(status_code=400, detail="This user does not exist")
+
     new_task = crud.create_task(db, request)
     return new_task
+
 
 
 # ----- Update Task (FULL FIX) -----
@@ -63,7 +70,7 @@ def update_task(task_id: int, request: TaskUpdateRequest, db: Session = Depends(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # ✅ Update only provided fields
+    # Update only provided fields
     if request.title is not None:
         task.title = request.title
     if request.description is not None:
