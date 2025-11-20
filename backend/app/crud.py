@@ -1,91 +1,91 @@
-from sqlalchemy.orm import Session
-from . import models
+from app.database import get_connection
+
+# --------------------- USER CRUD ----------------------
+
+def create_user(username, email, password, role):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        INSERT INTO users (username, email, password, role)
+        VALUES (%s, %s, %s, %s)
+    """
+    values = (username, email, password, role)
+
+    cursor.execute(query, values)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return True
 
 
-# ============================
-# ----- USER CRUD -----
-# ============================
+def get_user_by_email(email):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+    query = "SELECT * FROM users WHERE email = %s"
+    cursor.execute(query, (email,))
+    user = cursor.fetchone()
 
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
-
-def create_user(db: Session, user):
-    db_user = models.User(
-        email=user.email,
-        password=user.password,
-        role=user.role
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-def authenticate_user(db: Session, email: str, password: str):
-    user = get_user_by_email(db, email)
-    if not user or user.password != password:
-        return None
+    cursor.close()
+    conn.close()
     return user
 
-def get_users(db: Session):
-    return db.query(models.User).all()
 
-def delete_user(db: Session, user_id: int):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if user:
-        # Delete all tasks assigned to this user
-        tasks = db.query(models.Task).filter(models.Task.assigned_to == user.id).all()
-        for task in tasks:
-            db.delete(task)
-        db.delete(user)
-        db.commit()
-    return user
+# --------------------- TASK CRUD ----------------------
 
-# ============================
-# ----- TASK CRUD -----
-# ============================
+def create_task(title, description, assigned_to):
+    conn = get_connection()
+    cursor = conn.cursor()
 
-def create_task(db: Session, task):
-    db_task = models.Task(
-        title=task.title,
-        description=task.description,
-        assigned_to=task.assigned_to
-    )
-    db.add(db_task)
-    db.commit()
-    db.refresh(db_task)
-    return db_task
+    query = """
+        INSERT INTO tasks (title, description, assigned_to)
+        VALUES (%s, %s, %s)
+    """
+    cursor.execute(query, (title, description, assigned_to))
+    conn.commit()
 
-def get_task(db: Session, task_id: int):
-    return db.query(models.Task).filter(models.Task.id == task_id).first()
-
-def get_all_tasks(db: Session):
-    return db.query(models.Task).all()
-
-def get_tasks_for_user(db: Session, user_id: int):
-    return db.query(models.Task).filter(models.Task.assigned_to == user_id).all()
-
-def update_task(db: Session, task_id: int, title: str, description: str, assigned_to: int):
-    task = get_task(db, task_id)
-    if task:
-        task.title = title
-        task.description = description
-        task.assigned_to = assigned_to
-        db.commit()
-        db.refresh(task)
-    return task
+    cursor.close()
+    conn.close()
+    return True
 
 
+def get_all_tasks():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-def delete_task(db: Session, task_id: int):
-    task = get_task(db, task_id)
-    if task:
-        db.delete(task)
-        db.commit()
-    return task
+    cursor.execute("SELECT * FROM tasks")
+    tasks = cursor.fetchall()
 
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    cursor.close()
+    conn.close()
+    return tasks
 
+
+def update_task(task_id, title, description, status, comment):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        UPDATE tasks SET title=%s, description=%s, status=%s, comment=%s
+        WHERE id=%s
+    """
+    cursor.execute(query, (title, description, status, comment, task_id))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    return True
+
+
+def delete_task(task_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM tasks WHERE id=%s", (task_id,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    return True

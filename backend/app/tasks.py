@@ -1,86 +1,113 @@
-from fastapi import APIRouter, HTTPException, Depends, Path
-from sqlalchemy.orm import Session
-from app import crud
-from app.database import get_db
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
+from app.schemas import TaskCreateRequest, TaskUpdateRequest, TaskResponse
+from app.database import get_connection
 from typing import List
-from app import models
-from typing import Optional #🔸 ye line upar imports me add karna na bhoolna
-
 
 router = APIRouter()
 
-# ----- Schemas -----
-class TaskCreateRequest(BaseModel):
-    title: str
-    description: str
-    assigned_to: int
-
-#class TaskUpdateRequest(BaseModel):
-   # title: str
-    #description: str
-   # assigned_to: int
-    #status: str
-
-class TaskUpdateRequest(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    assigned_to: Optional[int] = None
-    status: Optional[str] = None
-
-
-
-class TaskResponse(BaseModel):
-    id: int
-    title: str
-    description: str
-    assigned_to: int
-
-    class Config:
-        from_attributes = True
-
-        #  NEW — Get all tasks
+# ----- GET ALL TASKS -----
 @router.get("/get", response_model=List[TaskResponse])
-def get_all_tasks(db: Session = Depends(get_db)):
-    tasks = crud.get_all_tasks(db)
+def get_all_tasks():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM tasks")
+    tasks = cursor.fetchall()
+    cursor.close()
+    conn.close()
     return tasks
 
-# ----- Get tasks for specific employee -----
-@router.get("/get/{assigned_to}", response_model=List[TaskResponse])
-def get_tasks_for_employee(assigned_to: int, db: Session = Depends(get_db)):
-    tasks = db.query(models.Task).filter(models.Task.assigned_to == assigned_to).all()
+# ----- GET TASKS FOR USER -----
+@router.get("/user/{user_id}", response_model=List[TaskResponse])
+def get_user_tasks(user_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM tasks WHERE assigned_to=%s", (user_id,))
+    tasks = cursor.fetchall()
+    cursor.close()
+    conn.close()
     return tasks
 
+# ----- CREATE TASK -----
+@router.post("/create", response_model=TaskResponse)
+def create_task(data: TaskCreateRequest):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-# ----- Create Task -----
-@router.post("/", response_model=TaskResponse)
-def create_task(request: TaskCreateRequest, db: Session = Depends(get_db)):
-    new_task = crud.create_task(db, request)
+    # check if assigned user exists
+    cursor.execute("SELECT * FROM users WHERE id=%s", (data.assigned_to,))
+    if not cursor.fetchone():
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=400, detail="Assigned user does not exist")
+
+    cursor.execute(
+        "INSERT INTO tasks (title, description, assigned_to, comment) VALUES (%s,%s,%s,%s)",
+        (data.title, data.description, data.assigned_to, data.comment)
+    )
+    conn.commit()
+    task_id = cursor.lastrowid
+
+    cursor.execute("SELECT * FROM tasks WHERE id=%s", (task_id,))
+    new_task = cursor.fetchone()
+    cursor.close()
+    conn.close()
     return new_task
 
-# ----- Update Task -----
-#@router.put("/tasks/{task_id}", response_model=TaskResponse)
-@router.put("/{task_id}", response_model=TaskResponse)
-def update_task(task_id: int, request: TaskUpdateRequest, db: Session = Depends(get_db)):
-    task = crud.update_task(db, task_id, request.title, request.description, request.assigned_to)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-     #  Update status
-    task.status = request.status
-    db.commit()
-    db.refresh(task)
-    return task
+# ----- UPDATE TASK -----
+@router.put("/update/{task_id}", response_model=TaskResponse)
+def update_task(task_id: int, data: TaskUpdateRequest):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-# ----- Delete Task -----
+    cursor.execute("SELECT * FROM tasks WHERE id=%s", (task_id,))
+    task = cursor.fetchone()
+    if not task:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Use existing values if field not provided
+    title = data.title.strip() if data.title else task["title"]
+    description = data.description.strip() if data.description else task["description"]
+    assigned_to = data.assigned_to if data.assigned_to is not None else task["assigned_to"]
+    status = data.status.strip() if data.status else task.get("status", "Pending")
+    comment = data.comment.strip() if data.comment else task.get("comment", "")
+
+    # check if assigned_to user exists
+    cursor.execute("SELECT * FROM users WHERE id=%s", (assigned_to,))
+    if not cursor.fetchone():
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=400, detail="Assigned user does not exist")
+
+    # update query
+    cursor.execute(
+        "UPDATE tasks SET title=%s, description=%s, assigned_to=%s, status=%s, comment=%s WHERE id=%s",
+        (title, description, assigned_to, status, comment, task_id)
+    )
+    conn.commit()
+
+    cursor.execute("SELECT * FROM tasks WHERE id=%s", (task_id,))
+    updated_task = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return updated_task
+
+# ----- DELETE TASK -----
 @router.delete("/delete/{task_id}")
-def delete_task(task_id: int = Path(...), db: Session = Depends(get_db)):
-    task = crud.delete_task(db, task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return {"message": f"Task {task_id} deleted successfully"}
+def delete_task(task_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-# ----- Get Tasks for User -----
-@router.get("/user/{user_id}", response_model=List[TaskResponse])
-def get_user_tasks(user_id: int, db: Session = Depends(get_db)):
-    tasks = crud.get_tasks_for_user(db, user_id)
-    return tasks
+    cursor.execute("SELECT * FROM tasks WHERE id=%s", (task_id,))
+    task = cursor.fetchone()
+    if not task:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    cursor.execute("DELETE FROM tasks WHERE id=%s", (task_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"message": f"Task {task_id} deleted successfully"}

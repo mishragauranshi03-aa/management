@@ -1,34 +1,22 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
-from sqlalchemy.orm import Session
-from .database import SessionLocal
-from . import models
-from .auth import SECRET_KEY, ALGORITHM
+import mysql.connector
+from fastapi import HTTPException
+from .database import get_connection
 
-security = HTTPBearer()  #  Yeh bearer scheme hai
+def get_user_by_id(user_id: int):
+    """
+    Direct MySQL query से user fetch करता है
+    बिना ORM और बिना token authentication
+    """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("id")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    cursor.close()
+    conn.close()
 
-    user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found")
+    
     return user
