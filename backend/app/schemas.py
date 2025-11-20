@@ -1,45 +1,55 @@
 from pydantic import BaseModel
+from typing import Optional
 
 # ---------- AUTH / USER ----------
 class LoginData(BaseModel):
     email: str
     password: str
+    role: str 
+
 
 class UserCreate(BaseModel):
+    username: str
     email: str
     password: str
     role: str = "Employee"
 
-class UserUpdate(BaseModel):
+class UpdateUserRequest(BaseModel):
+    username: str
     email: str
-    password: str
+    password: Optional[str] = None
     role: str
 
 class UserOut(BaseModel):
     id: int
+    username: str
     email: str
     role: str
 
     class Config:
         from_attributes = True
 
-
 # ---------- TASK ----------
-class TaskCreate(BaseModel):
+class TaskCreateRequest(BaseModel):
     title: str
     description: str
     assigned_to: int
+    comment: str = ""
 
-class TaskUpdate(BaseModel):
-    title: str
-    description: str
-    assigned_to: int
+class TaskUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    assigned_to: Optional[int] = None
+    status: Optional[str] = None
+    comment: Optional[str] = None
 
-class TaskOut(BaseModel):
+class TaskResponse(BaseModel):
     id: int
     title: str
     description: str
     assigned_to: int
+    status: Optional[str] = None
+    comment: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000", // ⚠ use your backend URL if needed
+  baseURL: "http://127.0.0.1:8000", 
 });
 
 // ---------- AUTH ----------
@@ -13,12 +13,16 @@ export const updateUser = (id, data) => API.put(`/auth/updateuser/${id}`, data);
 
 // ---------- TASKS ----------
 export const getAllTasks = () => API.get("/tasks/get");
-export const getEmployeeTasks = (id) => API.get(`/tasks/get/${id}`);
-export const createTask = (data) => API.post("/tasks/", data);
+export const getEmployeeTasks = (id) => API.get(`/tasks/user/${id}`);
+//export const getEmployeeTasks = (id) => API.get(`/tasks/get/${id}`);
+export const createTask = (data) => API.post("/tasks/create", data);
+//export const createTask = (data) => API.post("/tasks/", data); // <-- corrected
 
-//  fix: correct endpoint + consistent status updates
-export const updateTask = (id, data) => API.put(`/tasks/${id}`, data);
 
+// correct and consistent routes
+export const updateTask = (id, data) => API.put(`/tasks/update/${id}`, data);
 export const deleteTask = (id) => API.delete(`/tasks/delete/${id}`);
+//export const updateTask = (id, data) => API.put(`/tasks/${id}`, data);
+//export const deleteTask = (id) => API.delete(`/tasks/delete/${id}`);
 
-export default API;
+export default API;

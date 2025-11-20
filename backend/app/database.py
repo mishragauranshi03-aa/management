@@ -1,17 +1,9 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import mysql.connector
 
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:aayu2005@localhost:3306/dipija_dbb"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True, pool_pre_ping=True)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="aayu2005",
+        database="dipija_dbb"
+    )

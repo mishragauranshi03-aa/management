@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Card, TextInput, Button, Text, Title, Snackbar, Modal, Portal } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,7 +18,6 @@ const ManageEmployees = ({ navigation }) => {
   const [editingId, setEditingId] = useState(null);
   const [emailError, setEmailError] = useState("");
 
-  //  NEW STATES (delete popup)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
@@ -158,51 +157,32 @@ const ManageEmployees = ({ navigation }) => {
 
   return (
     <View style={styles.screen}>
-      {/* TOP SNACKBAR */}
+      
       <View style={styles.snackbarContainer}>
-        <Snackbar
-          visible={visible}
-          onDismiss={() => setVisible(false)}
-          duration={2000}
-          style={styles.snackbar}
-        >
+        <Snackbar visible={visible} onDismiss={() => setVisible(false)} duration={2000} style={styles.snackbar}>
           <Text style={styles.snackbarText}>{snackbarMessage}</Text>
         </Snackbar>
       </View>
 
-      {/*  DELETE CONFIRMATION POPUP */}
       <Portal>
-        <Modal
-          visible={deleteModalVisible}
-          onDismiss={() => setDeleteModalVisible(false)}
-          contentContainerStyle={styles.modalBox}
-        >
+        <Modal visible={deleteModalVisible} onDismiss={() => setDeleteModalVisible(false)} contentContainerStyle={styles.modalBox}>
           <Text style={styles.modalTitle}>⚠️ Are you sure you want to delete?</Text>
 
           <View style={styles.modalButtons}>
-            <Button mode="contained" onPress={() => setDeleteModalVisible(false)} style={styles.noBtn}>
-              No
-            </Button>
-
-            <Button mode="contained" onPress={confirmDelete} style={styles.yesBtn}>
-              Yes
-            </Button>
+            <Button mode="contained" onPress={() => setDeleteModalVisible(false)} style={styles.noBtn}>No</Button>
+            <Button mode="contained" onPress={confirmDelete} style={styles.yesBtn}>Yes</Button>
           </View>
         </Modal>
       </Portal>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContainer}>
+      {/* ⭐⭐ MAIN SCROLL AREA (No ScrollView Used) ⭐⭐ */}
+      <View style={styles.scrollArea}>
+
         <Title style={styles.title}>
           {editingId ? "Edit Employee/Admin" : "Add Employee/Admin"}
         </Title>
 
-        <TextInput
-          label="Username"
-          value={username}
-          onChangeText={setUsername}
-          style={styles.input}
-          mode="outlined"
-        />
+        <TextInput label="Username" value={username} onChangeText={setUsername} style={styles.input} mode="outlined" />
 
         <View style={{ position: "relative" }}>
           <TextInput
@@ -236,11 +216,7 @@ const ManageEmployees = ({ navigation }) => {
           mode="outlined"
         />
 
-        <Button
-          mode="contained"
-          style={styles.button}
-          onPress={editingId ? handleSaveEdit : addEmployee}
-        >
+        <Button mode="contained" style={styles.button} onPress={editingId ? handleSaveEdit : addEmployee}>
           {editingId ? "Save Changes" : "Add"}
         </Button>
 
@@ -258,25 +234,33 @@ const ManageEmployees = ({ navigation }) => {
                 Edit
               </Button>
 
-              <Button
-                mode="contained"
-                onPress={() => handleDeleteEmployee(emp.id)}
-                style={styles.deleteButton}
-              >
+              <Button mode="contained" onPress={() => handleDeleteEmployee(emp.id)} style={styles.deleteButton}>
                 Delete
               </Button>
             </Card.Actions>
           </Card>
         ))}
-      </ScrollView>
+
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#e8f0fe" },
-  scrollView: { flex: 1 },
-  scrollContainer: { padding: 16, paddingBottom: 100 },
+  screen: {
+    flex: 1,
+    backgroundColor: "#e8f0fe",
+  },
+
+  /* ⭐⭐ SCROLL WITHOUT SCROLLVIEW ⭐⭐ */
+  scrollArea: {
+    flex: 1,
+    width: "100%",
+    overflowY: "scroll",   // ⭐⭐ MAIN FIX — WEB + MOBILE पे काम करता है
+    padding: 16,
+    paddingBottom: 100,
+  },
+
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -327,7 +311,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  //  POPUP STYLES
   modalBox: {
     backgroundColor: "#fff",
     padding: 20,

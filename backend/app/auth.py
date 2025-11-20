@@ -1,111 +1,126 @@
-from fastapi import APIRouter, HTTPException, Depends, Path
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from app import crud
-from app.database import get_db
-from typing import Optional
+from fastapi import APIRouter, HTTPException
+from app.schemas import LoginData, UserCreate, UpdateUserRequest, UserOut
+from app.database import get_connection
 
 router = APIRouter()
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-    username: Optional[str] = None
-    role: Optional[str] = None
-
-
-class RegisterRequest(BaseModel):
-    username: str
-    email: str
-    password: str
-    role: str = "Employee"
-
-
-# ----- Login -----
+# ----- LOGIN -----
 @router.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+def login(data: LoginData):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    # Gmail check
-    if not request.email.endswith("@gmail.com"):
-        raise HTTPException(status_code=400, detail="Only Gmail addresses are allowed")
+    cursor.execute(
+        "SELECT * FROM users WHERE email=%s AND password=%s",
+        (data.email, data.password)
+    )
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
 
-    user = crud.authenticate_user(db, request.email, request.password)
-    
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
 
-    # Optional role check
-    if request.role and user.role != request.role:
+    # Role check
+    if data.role.strip().lower() != user["role"].strip().lower():  # <-- lowercase compare
         raise HTTPException(status_code=403, detail="Access denied for this role")
 
-    # ✅ Proper JSON response (frontend expects this)
     return {
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "role": user.role
+        "id": user["id"],
+        "username": user["username"],
+        "email": user["email"],
+        "role": user["role"]
     }
 
-
-    # ✅ Fix: role check add kiya (backend filter)
-   # if user.role != request.role:
-       # raise HTTPException(status_code=403, detail="Access denied for this role")
-   # return {"id": user.id, "email": user.email, "role": user.role}
-
-    if request.role is not None and user.role != request.role:
-      raise HTTPException(status_code=403, detail="Access denied for this role")
-
-
-# ----- Create User -----
+# ----- REGISTER -----
 @router.post("/createuser")
-def create_user(request: RegisterRequest, db: Session = Depends(get_db)):
-    existing_user = crud.get_user_by_email(db, request.email)
-    if existing_user:
+def create_user(data: UserCreate):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM users WHERE email=%s", (data.email,))
+    if cursor.fetchone():
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = crud.create_user(db, request)
-    return {"id": new_user.id, "username": new_user.username, "email": new_user.email, "role": new_user.role}
 
+    cursor.execute("SELECT * FROM users WHERE username=%s", (data.username,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="Username already taken")
 
-# ----- Delete User -----
-@router.delete("/deleteuser/{user_id}")
-def delete_user(user_id: int = Path(...), db: Session = Depends(get_db)):
-    user = crud.delete_user(db, user_id)
+    cursor.execute(
+        "INSERT INTO users (username, email, password, role) VALUES (%s, %s, %s, %s)",
+        (data.username, data.email, data.password, data.role)
+    )
+    conn.commit()
+    user_id = cursor.lastrowid
+
+    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+    new_user = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return {
+        "id": new_user["id"],
+        "username": new_user["username"],
+        "email": new_user["email"],
+        "role": new_user["role"]
+    }
+
+# ----- UPDATE USER -----
+@router.put("/updateuser/{user_id}")
+def update_user(user_id: int, data: UpdateUserRequest):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # update fields
+    username = data.username
+    email = data.email
+    role = data.role
+    password = data.password if data.password else user["password"]
+
+    cursor.execute(
+        "UPDATE users SET username=%s, email=%s, password=%s, role=%s WHERE id=%s",
+        (username, email, password, role, user_id)
+    )
+    conn.commit()
+
+    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+    updated_user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    return {
+        "message": f"User {user_id} updated successfully",
+        "user": updated_user
+    }
+
+# ----- DELETE USER -----
+@router.delete("/deleteuser/{user_id}")
+def delete_user(user_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # delete user's tasks first
+    cursor.execute("DELETE FROM tasks WHERE assigned_to=%s", (user_id,))
+    cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
     return {"message": f"User {user_id} deleted successfully"}
 
-
-# ----- Update User (FIXED) -----
-from pydantic import BaseModel
-
-class UpdateUserRequest(BaseModel):
-    username: str
-    email: str
-    password: str | None = None  # ✅ Password optional
-    role: str
-
-@router.put("/updateuser/{user_id}")
-def update_user(user_id: int, request: UpdateUserRequest, db: Session = Depends(get_db)):
-    user = crud.get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # ✅ Always update email and role
-    user.username = request.username
-    user.email = request.email
-    user.role = request.role
-
-    # ✅ Only update password if provided (not empty)
-    if request.password and request.password.strip() != "":
-        user.password = request.password  # or use your hash_password() here
-
-    db.commit()
-    db.refresh(user)
-    return {"message": f"User {user_id} updated successfully", "user": user}
-
-
-# ----- Get All Users -----
+# ----- LIST USERS -----
 @router.get("/listuser")
-def list_users(db: Session = Depends(get_db)):
-    users = crud.get_users(db)
+def list_users():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users")
+    users = cursor.fetchall()
+    cursor.close()
+    conn.close()
     return users
