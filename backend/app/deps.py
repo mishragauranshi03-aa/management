@@ -3,10 +3,7 @@ from fastapi import HTTPException
 from .database import get_connection
 
 def get_user_by_id(user_id: int):
-    """
-    Direct MySQL query से user fetch करता है
-    बिना ORM और बिना token authentication
-    """
+    
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 

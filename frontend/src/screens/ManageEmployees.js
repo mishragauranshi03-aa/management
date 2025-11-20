@@ -175,7 +175,7 @@ const ManageEmployees = ({ navigation }) => {
         </Modal>
       </Portal>
 
-      {/* ⭐⭐ MAIN SCROLL AREA (No ScrollView Used) ⭐⭐ */}
+    
       <View style={styles.scrollArea}>
 
         <Title style={styles.title}>
@@ -252,11 +252,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8f0fe",
   },
 
-  /* ⭐⭐ SCROLL WITHOUT SCROLLVIEW ⭐⭐ */
   scrollArea: {
     flex: 1,
     width: "100%",
-    overflowY: "scroll",   // ⭐⭐ MAIN FIX — WEB + MOBILE पे काम करता है
+    overflowY: "scroll", 
     padding: 16,
     paddingBottom: 100,
   },

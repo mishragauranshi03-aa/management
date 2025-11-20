@@ -14,15 +14,10 @@ export const updateUser = (id, data) => API.put(`/auth/updateuser/${id}`, data);
 // ---------- TASKS ----------
 export const getAllTasks = () => API.get("/tasks/get");
 export const getEmployeeTasks = (id) => API.get(`/tasks/user/${id}`);
-//export const getEmployeeTasks = (id) => API.get(`/tasks/get/${id}`);
 export const createTask = (data) => API.post("/tasks/create", data);
-//export const createTask = (data) => API.post("/tasks/", data); // <-- corrected
-
 
 // correct and consistent routes
 export const updateTask = (id, data) => API.put(`/tasks/update/${id}`, data);
 export const deleteTask = (id) => API.delete(`/tasks/delete/${id}`);
-//export const updateTask = (id, data) => API.put(`/tasks/${id}`, data);
-//export const deleteTask = (id) => API.delete(`/tasks/delete/${id}`);
 
 export default API;
