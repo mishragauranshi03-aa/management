@@ -22,7 +22,9 @@ const EmployeeDashboard = ({ navigation }) => {
 
   const fetchTasks = async () => {
     try {
-      const resp = await getEmployeeTasks(user.id);
+      //const resp = await getEmployeeTasks(user.id);
+      const resp = await getEmployeeTasks(user.username);
+
       setTasks(resp.data);
     } catch (e) {
       console.log(e);
@@ -30,20 +32,65 @@ const EmployeeDashboard = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    
+    <ScrollView contentContainerStyle={styles.container}   style={styles.tableBody}>
+      
+      {/* Heading */}
       <Title style={styles.title}>My Tasks</Title>
-       {tasks.map(task => (
+
+      {/* Logout Button below heading, left corner */}
+      <Button 
+        mode="contained" 
+        style={styles.logoutButton} 
+        labelStyle={styles.logoutButtonText}
+        onPress={() => confirmLogout(logout, navigation)}
+      >
+        Logout
+      </Button>
+
+      {/* Task Cards */}
+      {tasks.map(task => (
         <TaskCard key={task.id} task={task} onUpdated={fetchTasks} />
       ))}
-      <Button mode="outlined" style={styles.logoutButton} onPress={() => confirmLogout(logout, navigation)}>Logout</Button>
+
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: '#e8f0fe', flexGrow: 1 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#6200ee', marginBottom: 20, textAlign: 'center' },
-  logoutButton: { marginTop: 20, borderRadius: 30, borderColor: '#6200ee', borderWidth: 2, paddingVertical: 6 }
+  container: { padding: 20, backgroundColor: '#009688', flexGrow: 1 },
+
+  title: { 
+    fontSize: 40, 
+    fontWeight: 'bold', 
+    color: '#ffffff', 
+    textAlign: 'center', 
+    marginBottom: 10  // heading ke niche thoda gap for logout button
+  },
+    tableBody: {
+    marginTop: 5,
+    height: 500,
+  },
+
+
+  logoutButton: { 
+    backgroundColor: '#ffffff', 
+    borderRadius: 20, 
+    paddingVertical: 10, 
+    paddingHorizontal: 20, 
+    height: 55, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',  // left side
+    marginBottom: 20,         // task cards ke upar gap
+  },
+
+  logoutButtonText: { 
+    color: '#000', 
+    fontWeight: 'bold',
+    fontSize: 18, 
+    fontWeight: 'bold' 
+  },
 });
 
 export default EmployeeDashboard;

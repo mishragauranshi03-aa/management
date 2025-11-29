@@ -13,7 +13,7 @@ export const updateUser = (id, data) => API.put(`/auth/updateuser/${id}`, data);
 
 // ---------- TASKS ----------
 export const getAllTasks = () => API.get("/tasks/get");
-export const getEmployeeTasks = (id) => API.get(`/tasks/user/${id}`);
+export const getEmployeeTasks = (username) => API.get(`/tasks/user/${username}`);
 export const createTask = (data) => API.post("/tasks/create", data);
 
 // correct and consistent routes
