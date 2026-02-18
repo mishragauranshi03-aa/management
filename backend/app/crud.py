@@ -89,6 +89,7 @@ def delete_task(task_id):
     cursor.close()
     conn.close()
     return True
+<<<<<<< HEAD
 
     def delete_user(user_id):
     conn = get_connection()
@@ -100,3 +101,5 @@ def delete_task(task_id):
     cursor.close()
     conn.close()
     return True
+=======
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105

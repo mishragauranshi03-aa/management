@@ -19,7 +19,24 @@ const ManageTasks = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [comment, setComment] = useState("");
 
+
+  // Snackbar
+  const [visible, setVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+
+  // Delete popup
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+
+  const showSnackbar = (msg) => {
+    setSnackbarMessage(msg);
+    setVisible(true);
+    setTimeout(() => setVisible(false), 2000);
+  };
+
+<<<<<<< HEAD
   const [visible, setVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
@@ -55,6 +72,12 @@ const ManageTasks = ({ navigation }) => {
       console.log("Employee fetch error:", err);
     }
   };
+=======
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", fetchTasks);
+    return unsubscribe;
+  }, [navigation]);
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
 
   const fetchTasks = async () => {
     try {
@@ -66,6 +89,7 @@ const ManageTasks = ({ navigation }) => {
     }
   };
 
+<<<<<<< HEAD
   const openAddTaskModal = () => {
     setTitle("");
     setDescription("");
@@ -84,6 +108,8 @@ const ManageTasks = ({ navigation }) => {
   };
   // ---------------------------
 
+=======
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
   const handleAddTask = async () => {
     let valid = true;
     setTitleError("");
@@ -114,7 +140,12 @@ const ManageTasks = ({ navigation }) => {
       const data = {
         title: title.trim(),
         description: description.trim(),
+<<<<<<< HEAD
         assigned_user_name: assignedTo.trim(),
+=======
+        assigned_to: assignedTo ? parseInt(assignedTo) : null,
+        comment: comment.trim(),
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
         status: "Pending",
       };
 
@@ -124,7 +155,10 @@ const ManageTasks = ({ navigation }) => {
       setTitle("");
       setDescription("");
       setAssignedTo("");
+<<<<<<< HEAD
       setFormModalVisible(false);
+=======
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
 
       showSnackbar("Task Added Successfully ! ✅");
     } catch (err) {
@@ -132,15 +166,41 @@ const ManageTasks = ({ navigation }) => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  const openDeleteModal = (id) => {
+    setSelectedTaskId(id);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteTask(selectedTaskId);
+      await fetchTasks();
+      setDeleteModalVisible(false);
+
+      showSnackbar("Task Deleted Successfully ! ✅");
+    } catch (err) {
+      console.log("Delete task error:", err?.response?.data || err);
+    }
+  };
+
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
   const handleEditClick = (task) => {
     setEditingId(task.id);
     setTitle(task.title);
     setDescription(task.description);
+<<<<<<< HEAD
     setAssignedTo(task.assigned_user_name || "");
     setTitleError("");
     setDescriptionError("");
     setAssignedError("");
     setFormModalVisible(true);
+=======
+    setAssignedTo(String(task.assigned_to || ""));
+    setComment(task.comment || "");
+
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
   };
 
   const handleSaveEdit = async () => {
@@ -173,7 +233,12 @@ const ManageTasks = ({ navigation }) => {
       const data = {
         title: title.trim(),
         description: description.trim(),
+<<<<<<< HEAD
         assigned_user_name: assignedTo.trim(),
+=======
+        assigned_to: parseInt(assignedTo) || null,
+        comment: comment.trim(),
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
         status: "Pending",
       };
 
@@ -184,9 +249,14 @@ const ManageTasks = ({ navigation }) => {
       setTitle("");
       setDescription("");
       setAssignedTo("");
+<<<<<<< HEAD
       setFormModalVisible(false);
 
       showSnackbar("Saved Successfully ! ✔");
+=======
+
+      showSnackbar("Saved Successfully ! ✅");
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     } catch (err) {
       console.log("Update task error:", err?.response?.data || err);
     }
@@ -209,6 +279,7 @@ const ManageTasks = ({ navigation }) => {
   };
 
   return (
+<<<<<<< HEAD
     <View style={{ flex: 1, backgroundColor: "#009688" }}>
       {/* ORIGINAL UI BELOW — NOTHING CHANGED */}
 
@@ -238,12 +309,52 @@ const ManageTasks = ({ navigation }) => {
 
               <TouchableOpacity onPress={confirmDelete} style={styles.yesButton}>
                 <Text style={styles.yesButtonText}>Yes</Text>
+=======
+    <View style={{ flex: 1 }}>
+      {/* Snackbar Top Center */}
+      <View style={styles.snackbarContainer}>
+        <Snackbar
+          visible={visible}
+          onDismiss={() => setVisible(false)}
+          duration={2000}
+          style={styles.snackbar}
+        >
+          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+        </Snackbar>
+      </View>
+
+      {/* DELETE CONFIRM POPUP */}
+      <Modal transparent visible={deleteModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={{ fontSize: 22, marginBottom: 5 }}></Text>
+
+            <Text style={styles.modalTitle}>
+             ⚠️ Are you sure you want to delete?
+            </Text>
+
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={styles.noButton}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={{ textAlign: "center", color: "#fff", fontWeight: "bold" }}>
+                  No
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.yesButton} onPress={confirmDelete}>
+                <Text style={{ textAlign: "center", color: "#fff", fontWeight: "bold" }}>
+                  Yes
+                </Text>
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
+<<<<<<< HEAD
       {/* FORM MODAL */}
       <Modal transparent visible={formModalVisible} animationType="none">
         <View style={styles.modalOverlay}>
@@ -311,27 +422,179 @@ const ManageTasks = ({ navigation }) => {
                 Edit
               </Button>
               <Button mode="contained" style={styles.deleteButton} onPress={() => openDeleteModal(task.id)}>
+=======
+      {/* MAIN UI */}
+      <ScrollView style={styles.container}>
+        <Title style={styles.title}>
+          {editingId ? "Edit Task" : "Add Task"}
+        </Title>
+
+        <TextInput
+          label="Title"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+          mode="outlined"
+        />
+        <TextInput
+          label="Description"
+          value={description}
+          onChangeText={setDescription}
+          style={styles.input}
+          mode="outlined"
+        />
+        <TextInput
+          label="Assign To (User ID)"
+          value={assignedTo}
+          onChangeText={setAssignedTo}
+          style={styles.input}
+          mode="outlined"
+          keyboardType="numeric"
+        />
+
+        <TextInput
+          label="Comment"
+          value={comment}
+          onChangeText={setComment}
+          style={styles.input}
+          mode="outlined"
+        />
+
+
+        <Button
+          mode="contained"
+          style={styles.addButton}
+          onPress={editingId ? handleSaveEdit : handleAddTask}
+        >
+          {editingId ? "Save Changes" : "Add Task"}
+        </Button>
+
+        {tasks.map((task) => (
+          <Card key={task.id} style={styles.card}>
+            <Card.Content>
+              <Text style={styles.cardTitle}>{task.title}</Text>
+              <Text style={styles.cardSubtitle}>{task.description}</Text>
+              <Text style={styles.cardSubtitle}>Assigned To: {task.assigned_to}</Text>
+              <Text style={styles.cardSubtitle}>Comment: {task.comment}</Text>
+              <Text style={styles.statusText}>Status: {task.status || "Pending"}</Text>
+            </Card.Content>
+
+            <Card.Actions>
+              <Button
+                mode="outlined"
+                style={styles.editButton}
+                onPress={() => handleEditClick(task)}
+                textColor="#fff"
+              >
+                Edit
+              </Button>
+              <Button
+                mode="contained"
+                style={styles.deleteButton}
+                onPress={() => openDeleteModal(task.id)}
+              >
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
                 Delete
               </Button>
             </Card.Actions>
           </Card>
         ))}
+<<<<<<< HEAD
+=======
+
+        <Button mode="outlined" style={styles.backButton} onPress={() => navigation.goBack()}>
+          Back
+        </Button>
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
   mainContainer: { flex: 1, padding: 20, backgroundColor: "#e8f0fe" },
 
   pageHeading: {
     fontSize: 40,
+=======
+  container: { padding: 20, backgroundColor: "#e8f0fe", flex: 1 },
+
+  snackbarContainer: {
+    position: "absolute",
+    top: 80,
+    width: "100%",
+    alignItems: "center",
+    zIndex: 100,
+  },
+  snackbar: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    elevation: 5,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+  },
+  snackbarText: {
+    color: "green",
+    fontSize: 20,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
+  // POPUP STYLES (EXACT screenshot जैसा)
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    width: "300",
+    backgroundColor: "#fff",
+    paddingVertical: 20,
+    paddingHorizontal: 26,
+    borderRadius: 14,
+    elevation: 10,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalButtonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    width: "85%",
+  },
+  noButton: {
+    backgroundColor: "#6d6d6d",
+    width: "40%",
+    height: 42,
+    justifyContent: "center",
+    borderRadius: 22,
+  },
+  yesButton: {
+    backgroundColor: "#d32f2f",
+    width: "40%",
+    height: 42,
+    justifyContent: "center",
+    borderRadius: 22,
+  },
+
+  // REST UI
+  title: {
+    fontSize: 24,
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     fontWeight: "bold",
     color: '#ffffff',
     textAlign: "center",
     marginTop: 10,
     marginBottom: 10,
   },
+<<<<<<< HEAD
   addButtonContainer: {
     alignItems: "flex-end",
     marginBottom: 10,
@@ -355,6 +618,14 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", alignItems: "center" },
 
   deleteBox: {
+=======
+  input: { marginBottom: 10, backgroundColor: "#fff" },
+  addButton: { marginBottom: 20, borderRadius: 30, backgroundColor: "#6200ee" },
+  card: {
+    marginVertical: 8,
+    borderRadius: 15,
+    elevation: 5,
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
@@ -362,6 +633,7 @@ const styles = StyleSheet.create({
     elevation :10,
     alignSelf: "center",
   },
+<<<<<<< HEAD
   topRow: { width: "100%", alignItems: "flex-start", marginBottom: 6 },
   warningIcon: { fontSize: 36, marginLeft: 12, marginBottom: 6 },
   deleteHeading: {
@@ -384,6 +656,15 @@ const styles = StyleSheet.create({
     width: "48%",
     backgroundColor: "#bdbdbd",
     paddingVertical: 14,
+=======
+  cardTitle: { fontSize: 18, fontWeight: "bold", color: "#6200ee" },
+  cardSubtitle: { fontSize: 14, color: "#333" },
+  statusText: { fontSize: 15, fontWeight: "bold", color: "#1a73e8", marginTop: 5 },
+  editButton: { backgroundColor: "#4CAF50", marginRight: 5 },
+  deleteButton: { backgroundColor: "#d32f2f" },
+  backButton: {
+    marginTop: 20,
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     borderRadius: 30,
     alignItems: "center",
   },
@@ -455,5 +736,9 @@ const styles = StyleSheet.create({
   },
 });
 
+<<<<<<< HEAD
 
 export default ManageTasks;
+=======
+export default ManageTasks;
+>>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
