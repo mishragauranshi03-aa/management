@@ -89,3 +89,14 @@ def delete_task(task_id):
     cursor.close()
     conn.close()
     return True
+
+    def delete_user(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    return True

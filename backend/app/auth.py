@@ -99,20 +99,33 @@ def update_user(user_id: int, data: UpdateUserRequest):
         "user": updated_user
     }
 
-# ----- DELETE USER -----
 @router.delete("/deleteuser/{user_id}")
 def delete_user(user_id: int):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # delete user's tasks first
-    cursor.execute("DELETE FROM tasks WHERE assigned_to=%s", (user_id,))
-    cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
+    # First get user record
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if not user:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail="User not found")
+
+    username = user["username"]
+
+    # First delete tasks that belong to this username
+    cursor.execute("DELETE FROM tasks WHERE assigned_user_name = %s", (username,))
+
+    # Now delete user
+    cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
     conn.commit()
     cursor.close()
     conn.close()
 
-    return {"message": f"User {user_id} deleted successfully"}
+    return {"message": f"User {username} deleted successfully"}
+
 
 # ----- LIST USERS -----
 @router.get("/listuser")

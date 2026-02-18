@@ -228,7 +228,7 @@ const ManageTasks = ({ navigation }) => {
             </View>
 
             <Text style={styles.deleteHeading}>
-             ⚠ Are you sure you want to{"\n"}delete?
+              ⚠️ Are you sure you want to{"\n"}delete?
             </Text>
 
             <View style={styles.deleteButtonsRow}>

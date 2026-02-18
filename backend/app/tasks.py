@@ -17,11 +17,11 @@ def get_all_tasks():
     return tasks
 
 # ----- GET TASKS FOR USER -----
-@router.get("/user/{user_id}", response_model=List[TaskResponse])
-def get_user_tasks(user_id: int):
+@router.get("/user/{user_name}", response_model=List[TaskResponse])
+def get_user_tasks(user_name: str):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM tasks WHERE assigned_to=%s", (user_id,))
+    cursor.execute("SELECT * FROM tasks WHERE assigned_user_name=%s", (user_name,))
     tasks = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -33,16 +33,9 @@ def create_task(data: TaskCreateRequest):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # check if assigned user exists
-    cursor.execute("SELECT * FROM users WHERE id=%s", (data.assigned_to,))
-    if not cursor.fetchone():
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=400, detail="Assigned user does not exist")
-
     cursor.execute(
-        "INSERT INTO tasks (title, description, assigned_to, comment) VALUES (%s,%s,%s,%s)",
-        (data.title, data.description, data.assigned_to, data.comment)
+        "INSERT INTO tasks (title, description, assigned_user_name, status) VALUES (%s,%s,%s,%s)",
+        (data.title, data.description, data.assigned_user_name, "Pending")
     )
     conn.commit()
     task_id = cursor.lastrowid
@@ -66,24 +59,14 @@ def update_task(task_id: int, data: TaskUpdateRequest):
         conn.close()
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # Use existing values if field not provided
-    title = data.title.strip() if data.title else task["title"]
-    description = data.description.strip() if data.description else task["description"]
-    assigned_to = data.assigned_to if data.assigned_to is not None else task["assigned_to"]
-    status = data.status.strip() if data.status else task.get("status", "Pending")
-    comment = data.comment.strip() if data.comment else task.get("comment", "")
+    title = data.title or task["title"]
+    description = data.description or task["description"]
+    assigned_user_name = data.assigned_user_name or task["assigned_user_name"]
+    status = data.status or task.get("status", "Pending")
 
-    # check if assigned_to user exists
-    cursor.execute("SELECT * FROM users WHERE id=%s", (assigned_to,))
-    if not cursor.fetchone():
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=400, detail="Assigned user does not exist")
-
-    # update query
     cursor.execute(
-        "UPDATE tasks SET title=%s, description=%s, assigned_to=%s, status=%s, comment=%s WHERE id=%s",
-        (title, description, assigned_to, status, comment, task_id)
+        "UPDATE tasks SET title=%s, description=%s, assigned_user_name=%s, status=%s WHERE id=%s",
+        (title, description, assigned_user_name, status, task_id)
     )
     conn.commit()
 
@@ -110,4 +93,4 @@ def delete_task(task_id: int):
     conn.commit()
     cursor.close()
     conn.close()
-    return {"message": f"Task {task_id} deleted successfully"}
+    return {"message": f"Task {task_id} deleted successfully"}
