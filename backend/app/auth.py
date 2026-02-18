@@ -9,7 +9,6 @@ router = APIRouter()
 def login(data: LoginData):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-<<<<<<< HEAD
 
     cursor.execute(
         "SELECT * FROM users WHERE email=%s AND password=%s",
@@ -22,7 +21,6 @@ def login(data: LoginData):
     if not user:
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
-=======
 
     cursor.execute(
         "SELECT * FROM users WHERE email=%s AND password=%s",
@@ -35,7 +33,6 @@ def login(data: LoginData):
     if not user:
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     # Role check
     if data.role.strip().lower() != user["role"].strip().lower():  # <-- lowercase compare
         raise HTTPException(status_code=403, detail="Access denied for this role")
@@ -52,7 +49,6 @@ def login(data: LoginData):
 def create_user(data: UserCreate):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-<<<<<<< HEAD
 
     cursor.execute("SELECT * FROM users WHERE email=%s", (data.email,))
     if cursor.fetchone():
@@ -143,7 +139,6 @@ def delete_user(user_id: int):
     return {"message": f"User {username} deleted successfully"}
 
 
-=======
 
     cursor.execute("SELECT * FROM users WHERE email=%s", (data.email,))
     if cursor.fetchone():
@@ -221,7 +216,6 @@ def delete_user(user_id: int):
 
     return {"message": f"User {user_id} deleted successfully"}
 
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
 # ----- LIST USERS -----
 @router.get("/listuser")
 def list_users():
@@ -231,8 +225,5 @@ def list_users():
     users = cursor.fetchall()
     cursor.close()
     conn.close()
-<<<<<<< HEAD
     return users
-=======
     return users
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105

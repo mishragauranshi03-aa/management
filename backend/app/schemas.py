@@ -33,40 +33,31 @@ class UserOut(BaseModel):
 class TaskCreateRequest(BaseModel):
     title: str
     description: str
-<<<<<<< HEAD
     assigned_user_name: Optional[str] = None
    # comment: str = ""
-=======
     assigned_to: int
     comment: str = ""
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
 
 class TaskUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-<<<<<<< HEAD
     assigned_user_name: Optional[str] = None
     status: Optional[str] = None
     #comment: Optional[str] = None
-=======
     assigned_to: Optional[int] = None
     status: Optional[str] = None
     comment: Optional[str] = None
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
 
 class TaskResponse(BaseModel):
     id: int
     title: str
     description: str
-<<<<<<< HEAD
     assigned_user_name: Optional[str] = None
     status: Optional[str] = None
     #comment: Optional[str] = None
-=======
     assigned_to: int
     status: Optional[str] = None
     comment: Optional[str] = None
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
 
     class Config:
         from_attributes = True

@@ -12,12 +12,9 @@ const LoginScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const roleFromHome = route.params?.role;
 
-<<<<<<< HEAD
   const handleLogin = async () => {
-    // Reset previous error
     setError('');
 
-    // Validation for empty fields
     if (!email.trim() && !password.trim()) {
       setError("Please enter the email and password");
       return;
@@ -31,7 +28,6 @@ const LoginScreen = ({ route, navigation }) => {
       return;
     }
 
-    // Existing Gmail check
     if (!email.endsWith("@gmail.com")) {
       setError("Only Gmail addresses are allowed.");
       return;
@@ -40,53 +36,30 @@ const LoginScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       const userData = await login(email.trim(), password, roleFromHome);
-      await AsyncStorage.setItem('@username', userData.username); // <-- add this
+
       await AsyncStorage.setItem('@username', userData.username);
 
-      if (userData.role.toLowerCase() === "admin") navigation.replace('AdminDashboard');
-      else if (userData.role.toLowerCase() === "employee") navigation.replace('EmployeeDashboard');
-      else setError('Invalid login credentials');
+      if (userData.role.toLowerCase() === "admin")
+        navigation.replace('AdminDashboard');
+      else if (userData.role.toLowerCase() === "employee")
+        navigation.replace('EmployeeDashboard');
+      else
+        setError('Invalid login credentials');
 
     } catch (e) {
       console.log("Login error:", e.response?.data || e.message);
-      if (e.response?.data?.detail === "Access denied for this role") setError("Access denied for this role");
-      else if (e.response?.data?.detail === "Invalid credentials") setError("Login failed. Please check your credentials.");
-      else setError("Login failed.Please check your credentials. ");
+
+      if (e.response?.data?.detail === "Access denied for this role")
+        setError("Access denied for this role");
+      else if (e.response?.data?.detail === "Invalid credentials")
+        setError("Login failed. Please check your credentials.");
+      else
+        setError("Login failed. Please try again.");
+
     } finally {
       setLoading(false);
-=======
-const handleLogin = async () => {
-  setError('');
-
-  //  Gmail validation
-  if (!email.endsWith("@gmail.com")) {
-    setError("Only Gmail addresses are allowed.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const role = await login(email.trim(), password, roleFromHome);
-    if (role === "Admin") navigation.replace('AdminDashboard');
-    else if (role === "Employee") navigation.replace('EmployeeDashboard');
-    else setError('Invalid login credentials');
-  } catch (e) {
-    console.log("Login error:", e.response?.data || e.message);
-
-    if (e.response?.data?.detail === "Access denied for this role") {
-      setError("Access denied for this role");
-    } else if (e.response?.data?.detail === "Invalid credentials") {
-      setError("Login failed. Please check your credentials.");
-    } else {
-      setError("Login failed. Please try again.");
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     }
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  };
 
   return (
     <KeyboardAvoidingView
@@ -126,7 +99,7 @@ const handleLogin = async () => {
               style={styles.button}
               onPress={handleLogin}
               loading={loading}
-              labelStyle={{ fontWeight: 'bold',  fontSize: 18}}
+              labelStyle={{ fontWeight: 'bold', fontSize: 18 }}
             >
               Login
             </Button>
@@ -140,6 +113,7 @@ const handleLogin = async () => {
             >
               Back to Home
             </Button>
+
           </Card.Content>
         </Card>
       </View>
@@ -148,14 +122,60 @@ const handleLogin = async () => {
 };
 
 const styles = StyleSheet.create({
-  background: { flex: 1, backgroundColor: '#e8f0fe', justifyContent: 'center', alignItems: 'center' },
+  background: {
+    flex: 1,
+    backgroundColor: '#e8f0fe',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   container: { width: '30%' },
-  card: { padding: 90, borderRadius: 15, elevation: 8, backgroundColor: '#FFFFFF', borderWidth: 3,  borderColor: '#009688' },
-  title: { fontSize: 35, fontWeight: 'bold', color: '#6200ee', marginBottom: 50, textAlign: 'center' },
-  input: { marginBottom: 15, backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 10 },
-  button: { marginTop: 10, borderRadius: 30, backgroundColor: '#6200ee', borderWidth: 2, paddingVertical: 4, paddingHorizontal: 45, alignSelf: 'center', minWidth: 120 },
-  backButton: { marginTop: 15, borderRadius: 30, backgroundColor: '#6200ee', borderWidth: 2, paddingVertical: 6, paddingHorizontal: 20, alignSelf: 'center', minWidth: 120 },
-  error: { color: 'red', fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
+  card: {
+    padding: 90,
+    borderRadius: 15,
+    elevation: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 3,
+    borderColor: '#009688'
+  },
+  title: {
+    fontSize: 35,
+    fontWeight: 'bold',
+    color: '#6200ee',
+    marginBottom: 50,
+    textAlign: 'center'
+  },
+  input: {
+    marginBottom: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 10
+  },
+  button: {
+    marginTop: 10,
+    borderRadius: 30,
+    backgroundColor: '#6200ee',
+    borderWidth: 2,
+    paddingVertical: 4,
+    paddingHorizontal: 45,
+    alignSelf: 'center',
+    minWidth: 120
+  },
+  backButton: {
+    marginTop: 15,
+    borderRadius: 30,
+    backgroundColor: '#6200ee',
+    borderWidth: 2,
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    minWidth: 120
+  },
+  error: {
+    color: 'red',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10
+  },
 });
 
 export default LoginScreen;

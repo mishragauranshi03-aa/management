@@ -17,8 +17,5 @@ def root():
     return {"message": "Employee Management API is running"}
 
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-<<<<<<< HEAD
 app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
-=======
 app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105

@@ -30,11 +30,8 @@ export const AuthProvider = ({ children }) => {
     if (res.data && res.data.role) {
       setUser(res.data);
       await AsyncStorage.setItem("@user_data", JSON.stringify(res.data));
-<<<<<<< HEAD
       return res.data;
-=======
       return res.data.role;
->>>>>>> 8926bb94bd63ac3fb0a05b4eab035e48520af105
     } else {
       throw new Error("Invalid login response");
     }
